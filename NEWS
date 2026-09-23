@@ -1,6 +1,5 @@
-ktls-utils 1.4.0 2026-04-27
- * Implement support for TLS record size limits
- * Implement support for QUIC session tickets
- * Implement support for session tags (kernel support still needed)
- * Add extensible kernel capability detection
- * Add SIGHUP handler for live configuration reload
+ktls-utils 1.5.0 2026-09-23
+ * Implement DANE authentication of server certificates
+ * Add nfstlskey, a tool that manages NFS mTLS client identities
+ * Add support for GnuTLS URL-based private keys (PKCS#11, TPM)
+ * Enable post-quantum ECDHE + ML-KEM hybrid key exchange
