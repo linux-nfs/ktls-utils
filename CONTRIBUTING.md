@@ -17,7 +17,7 @@ to access archived threads.
 ## Opening issues
 
 We welcome you to use the GitHub
-[ktls-utils issue tracker](https://github.com/oracle/ktls-utils/issues)
+[ktls-utils issue tracker](https://github.com/linux-nfs/ktls-utils/issues)
 to report bugs or suggest features.
 
 When filing an issue, please check existing open or recently closed
@@ -62,7 +62,8 @@ have GitHub accounts, to participate in review.
 
 GitHub pull requests also work. To send us a pull request:
 
-1. Fork the oracle/ktls-utils repository.
+1. Fork the [linux-nfs/ktls-utils](https://github.com/linux-nfs/ktls-utils)
+   repository.
 2. Modify the source. Focus on the specific change you are
    contributing. If you also reformat all the code, it will
    be hard for us to review on your change.

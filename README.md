@@ -57,7 +57,8 @@ This project welcomes contributions from the community.
 Before submitting a pull request,
 please [review our contribution guide](./CONTRIBUTING.md).
 
-See the GitHub Issue Tracker to review or open to-do items.
+See the [GitHub Issue Tracker](https://github.com/linux-nfs/ktls-utils/issues)
+to review or open to-do items.
 
 ## Security
 
