@@ -360,16 +360,21 @@ static int quic_session_set_priority(gnutls_session_t session, uint32_t cipher)
 static int quic_session_set_alpns(gnutls_session_t session, char *alpn_data)
 {
 	gnutls_datum_t alpns[TLSHD_QUIC_MAX_ALPNS_LEN / 2];
-	char *alpn = strtok(alpn_data, ",");
+	char *saveptr = NULL;
+	char *alpn = strtok_r(alpn_data, ",", &saveptr);
 	int count = 0, ret;
 
 	while (alpn) {
 		while (*alpn == ' ')
 			alpn++;
+		if (!*alpn) {
+			alpn = strtok_r(NULL, ",", &saveptr);
+			continue;
+		}
 		alpns[count].data = (unsigned char *)alpn;
 		alpns[count].size = strlen(alpn);
 		count++;
-		alpn = strtok(NULL, ",");
+		alpn = strtok_r(NULL, ",", &saveptr);
 	}
 
 	ret = gnutls_alpn_set_protocols(session, alpns, count, GNUTLS_ALPN_MANDATORY);
@@ -421,6 +426,7 @@ static int quic_conn_get_config(struct tlshd_quic_conn *conn)
 		tlshd_log_error("socket getsockopt alpn error %d", errno);
 		return -1;
 	}
+	conn->alpns[len] = ' ';
 	len = sizeof(conn->ticket);
 	if (getsockopt(sockfd, SOL_QUIC, QUIC_SOCKOPT_SESSION_TICKET, conn->ticket, &len)) {
 		tlshd_log_error("socket getsockopt session ticket error %d", errno);
