@@ -75,7 +75,6 @@ extern int tlshd_dane_verify(struct tlshd_handshake_parms *parms,
 			     gnutls_session_t session);
 extern void tlshd_dane_record_pkix(struct tlshd_handshake_parms *parms,
 				   bool authenticated);
-extern void tlshd_dane_record_unauth(struct tlshd_handshake_parms *parms);
 extern void tlshd_dane_record_resumed(struct tlshd_handshake_parms *parms);
 extern void tlshd_dane_audit(struct tlshd_handshake_parms *parms);
 extern void tlshd_dane_release(struct tlshd_handshake_parms *parms);
@@ -98,11 +97,6 @@ tlshd_dane_verify(__attribute__ ((unused)) struct tlshd_handshake_parms *parms,
 static inline void
 tlshd_dane_record_pkix(__attribute__ ((unused)) struct tlshd_handshake_parms *parms,
 		       __attribute__ ((unused)) bool authenticated)
-{
-}
-
-static inline void
-tlshd_dane_record_unauth(__attribute__ ((unused)) struct tlshd_handshake_parms *parms)
 {
 }
 

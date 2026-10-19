@@ -131,7 +131,6 @@ struct tlshd_dane_result {
 
 	bool			dane_auth;	/**< Authenticated via DANE-EE */
 	bool			pkix_auth;	/**< Authenticated via PKIX */
-	bool			unauth;		/**< No authentication, as requested */
 	bool			resumed;	/**< Resumed an earlier session */
 	bool			matched;	/**< A TLSA record matched */
 	struct tlshd_dane_record match;		/**< The record that matched */
@@ -1009,16 +1008,6 @@ void tlshd_dane_record_pkix(struct tlshd_handshake_parms *parms,
 }
 
 /**
- * @brief Record that this handshake authenticates no one, by design
- * @param[in,out] parms  Handshake parameters
- */
-void tlshd_dane_record_unauth(struct tlshd_handshake_parms *parms)
-{
-	if (parms->dane)
-		parms->dane->unauth = true;
-}
-
-/**
  * @brief Record that this handshake resumed an earlier session
  * @param[in,out] parms  Handshake parameters
  */
@@ -1075,8 +1064,6 @@ void tlshd_dane_audit(struct tlshd_handshake_parms *parms)
 		auth = "dane-ee";
 	else if (res->pkix_auth)
 		auth = "pkix";
-	else if (res->unauth)
-		auth = "unauth";
 	else if (res->resumed)
 		auth = "resumed";
 	else

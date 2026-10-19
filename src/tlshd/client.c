@@ -712,17 +712,17 @@ void tlshd_tls13_clienthello_handshake(struct tlshd_handshake_parms *parms)
  * @retval GNUTLS_E_SUCCESS            Certificate has been successfully verified
  * @retval GNUTLS_E_CERTIFICATE_ERROR  Certificate verification failed
  */
-static int tlshd_quic_client_x509_verify_function(gnutls_session_t session)
+static int tlshd_quic_client_verify_function(gnutls_session_t session)
 {
 	struct tlshd_quic_conn *conn = gnutls_session_get_ptr(session);
 
+	if (conn->parms->auth_mode == HANDSHAKE_AUTH_UNAUTH)
+		return tlshd_client_verify_peer(session, conn->parms);
 	return tlshd_client_x509_verify_function(session, conn->parms);
 }
 
-#define TLSHD_QUIC_NO_CERT_AUTH	3
-
 /**
- * @brief Prepare a session for a QUIC client handshake using an x.509 cert
+ * @brief Prepare a session for a QUIC client handshake using x.509 certificates
  * @param[in]     conn
  */
 static void tlshd_quic_client_set_x509_session(struct tlshd_quic_conn *conn)
@@ -745,7 +745,7 @@ static void tlshd_quic_client_set_x509_session(struct tlshd_quic_conn *conn)
 	if (!tlshd_dane_evaluate(parms))
 		return;
 
-	if (conn->cert_req != TLSHD_QUIC_NO_CERT_AUTH) {
+	if (parms->auth_mode != HANDSHAKE_AUTH_UNAUTH) {
 		if (!tlshd_x509_client_get_certs(parms) || !tlshd_x509_client_get_privkey(parms)) {
 			tlshd_log_error("Failed to get cert or privkey");
 			goto err_config;
@@ -758,21 +758,17 @@ static void tlshd_quic_client_set_x509_session(struct tlshd_quic_conn *conn)
 	if (ret != GNUTLS_E_SUCCESS)
 		goto err_cred;
 
-	if (conn->cert_req == TLSHD_QUIC_NO_CERT_AUTH) {
-		/*
-		 * No verify callback runs on this path. Without this mark,
-		 * the audit reports an authentication failure.
-		 */
-		tlshd_dane_record_unauth(parms);
+	if (parms->auth_mode == HANDSHAKE_AUTH_UNAUTH) {
 		gnutls_certificate_set_verify_flags(cred, GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD2 |
 							  GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD5);
-		gnutls_certificate_set_flags(cred, GNUTLS_CERTIFICATE_SKIP_KEY_CERT_MATCH |
-						   GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK);
+		gnutls_certificate_set_flags(cred,
+					     GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK);
 	} else {
-		gnutls_certificate_set_verify_function(cred,
-						       tlshd_quic_client_x509_verify_function);
 		gnutls_certificate_set_retrieve_function2(cred, tlshd_x509_retrieve_key_cb);
 	}
+	/* An anonymous client still authenticates the server, as on TCP. */
+	gnutls_certificate_set_verify_function(cred,
+					       tlshd_quic_client_verify_function);
 
 	ret = gnutls_init(&session, GNUTLS_CLIENT |
 				    GNUTLS_ENABLE_EARLY_DATA | GNUTLS_NO_END_OF_EARLY_DATA);
@@ -803,16 +799,6 @@ err:
 err_config:
 	tlshd_x509_client_put_privkey();
 	tlshd_x509_client_put_certs();
-}
-
-/**
- * @brief Prepare a session for a QUIC client handshake using no authentication
- * @param[in]     conn
- */
-static void tlshd_quic_client_set_anon_session(struct tlshd_quic_conn *conn)
-{
-	conn->cert_req = TLSHD_QUIC_NO_CERT_AUTH;
-	tlshd_quic_client_set_x509_session(conn);
 }
 
 /**
@@ -878,8 +864,6 @@ void tlshd_quic_clienthello_handshake(struct tlshd_handshake_parms *parms)
 
 	switch (parms->auth_mode) {
 	case HANDSHAKE_AUTH_UNAUTH:
-		tlshd_quic_client_set_anon_session(conn);
-		break;
 	case HANDSHAKE_AUTH_X509:
 		tlshd_quic_client_set_x509_session(conn);
 		break;
@@ -895,8 +879,20 @@ void tlshd_quic_clienthello_handshake(struct tlshd_handshake_parms *parms)
 
 	tlshd_quic_start_handshake(conn);
 	parms->session_status = conn->errcode;
-	if (!parms->session_status && gnutls_session_is_resumed(conn->session))
-		tlshd_dane_record_resumed(parms);
+	if (!parms->session_status && gnutls_session_is_resumed(conn->session)) {
+		/*
+		 * A resumed handshake does not carry a Certificate message,
+		 * so the verify callback has not run. A ticket does not
+		 * record whether the handshake that issued it authenticated
+		 * the server. GnuTLS keeps the server chain in the
+		 * resumption data.
+		 */
+		if (parms->auth_mode == HANDSHAKE_AUTH_UNAUTH &&
+		    tlshd_quic_client_verify_function(conn->session) != GNUTLS_E_SUCCESS)
+			parms->session_status = EACCES;
+		else
+			tlshd_dane_record_resumed(parms);
+	}
 out:
 	tlshd_dane_audit(parms);
 	tlshd_quic_conn_destroy(conn);
