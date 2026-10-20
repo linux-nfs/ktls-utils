@@ -118,9 +118,6 @@ static void tlshd_tls13_client_anon_handshake(struct tlshd_handshake_parms *parm
 		return;
 	}
 
-	gnutls_certificate_set_flags(xcred,
-			GNUTLS_CERTIFICATE_SKIP_KEY_CERT_MATCH);
-
 	ret = tlshd_client_get_truststore(xcred);
 	if (ret != GNUTLS_E_SUCCESS)
 		goto out_free_creds;
