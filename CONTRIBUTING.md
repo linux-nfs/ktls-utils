@@ -5,8 +5,8 @@ Whether it's a bug report, new feature, correction, or additional
 documentation, we greatly value feedback and contributions from
 the open source community.
 
-Please read through this document before submitting an issue or pull
-request to ensure we have all the necessary information to
+Please read through this document before submitting an issue or
+patch to ensure we have all the necessary information to
 effectively respond to your bug report or contribution.
 
 A ktls-utils developer mailing list is available. See
@@ -44,7 +44,7 @@ including the following text with your commit message.
 Signed-off-by: Your Name <you@example.org>
 ```
 
-This can be automatically added to pull requests by committing with `--sign-off`
+git adds this trailer for you when you commit with `--sign-off`
 or `-s`, e.g.
 
 ```text
@@ -53,30 +53,12 @@ git commit --signoff
 
 Review the [Developer Certificate of Origin][DCO].
 
-## Pull request process
+## Submitting patches
 
 To contribute code, please post patches (not attachments) to
 [lists.linux.dev](https://subspace.kernel.org/lists.linux.dev.html).
 Sending email enables the community, which includes some who do not
 have GitHub accounts, to participate in review.
-
-GitHub pull requests also work. To send us a pull request:
-
-1. Fork the [linux-nfs/ktls-utils](https://github.com/linux-nfs/ktls-utils)
-   repository.
-2. Modify the source. Focus on the specific change you are
-   contributing. If you also reformat all the code, it will
-   be hard for us to review on your change.
-3. Ensure local tests pass.
-4. Commit to your fork using concise commit messages.
-5. Send us a pull request, answering any default questions in the pull
-   request interface.
-6. Pay attention to any automated CI failures reported in the pull
-   request and stay involved in the conversation.
-
-GitHub provides additional document on
-[forking a repository](https://help.github.com/articles/fork-a-repo/) and
-[creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
 ## Licensing
 
