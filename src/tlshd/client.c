@@ -118,13 +118,8 @@ static void tlshd_tls13_client_anon_handshake(struct tlshd_handshake_parms *parm
 		return;
 	}
 
-	/*
-	 * Don't reject self-signed server certificates.
-	 */
-	gnutls_certificate_set_verify_flags(xcred,
-			GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD2 | GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD5);
 	gnutls_certificate_set_flags(xcred,
-			GNUTLS_CERTIFICATE_SKIP_KEY_CERT_MATCH | GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK);
+			GNUTLS_CERTIFICATE_SKIP_KEY_CERT_MATCH);
 
 	ret = tlshd_client_get_truststore(xcred);
 	if (ret != GNUTLS_E_SUCCESS)
@@ -758,14 +753,8 @@ static void tlshd_quic_client_set_x509_session(struct tlshd_quic_conn *conn)
 	if (ret != GNUTLS_E_SUCCESS)
 		goto err_cred;
 
-	if (parms->auth_mode == HANDSHAKE_AUTH_UNAUTH) {
-		gnutls_certificate_set_verify_flags(cred, GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD2 |
-							  GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD5);
-		gnutls_certificate_set_flags(cred,
-					     GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK);
-	} else {
+	if (parms->auth_mode != HANDSHAKE_AUTH_UNAUTH)
 		gnutls_certificate_set_retrieve_function2(cred, tlshd_x509_retrieve_key_cb);
-	}
 	/* An anonymous client still authenticates the server, as on TCP. */
 	gnutls_certificate_set_verify_function(cred,
 					       tlshd_quic_client_verify_function);
