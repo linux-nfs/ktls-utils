@@ -283,6 +283,12 @@ static int quic_read_func(gnutls_session_t session, gnutls_record_encryption_lev
 	if (htype == GNUTLS_HANDSHAKE_KEY_UPDATE)
 		return 0;
 
+	if (datalen > sizeof(msg->data)) {
+		tlshd_log_error("QUIC handshake message too large (%zu bytes)",
+				datalen);
+		return -1;
+	}
+
 	msg = malloc(sizeof(*msg));
 	if (!msg) {
 		tlshd_log_debug("msg malloc error %d", ENOMEM);
